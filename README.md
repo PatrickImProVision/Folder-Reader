@@ -1,71 +1,79 @@
-# Guide of Folder-Reader
-Read files from folder with/without limitation of files and file extension
-## You can use it in codeigniter
- 	by adding to library and call it by :
-	 $this->load->library('Folder');
-	 $this->folder->the_function_you_want_to_use();
- _______________________________________________________________________________________________________________
-	1. set the path of a dir
-	$this->folder->where($folder);
-_______________________________________________________________________________________________________________	
-	2. You can set extension : if extension not set -> by default you will see all files
-	$this->folder->extension(array('html'));
-_______________________________________________________________________________________________________________	
-	3. You can set limit to read files as much as you want
-	$this->folder->limit(10);
-_______________________________________________________________________________________________________________
-	or you can set it to no limit to read all files in folder -> by default the limit is set to 1 file
-	$this->folder->no_limit();
-_______________________________________________________________________________________________________________
-	4. You have to use this function to read the folder
-	$this->folder->read();
-_______________________________________________________________________________________________________________
-	5. You can check the folder if is not empty -> if not empty return true
-	$this->folder->not_empty()
-_______________________________________________________________________________________________________________
-	6. You can get the files by using this function -> by default is always returning array
-		$this->folder->get_files();
-_______________________________________________________________________________________________________________
-## Check the examples to understand how to use it
-###	example 1 :
-	$this->folder->where($folder);
-	$this->folder->limit(10);
-	$this->folder->read();
-	$this->folder->get_files();
+# Folder Reader
+Read directory entries (folders + files) with extension filters, limits, and paging.
 
-###	example 2 :
-	$this->folder->where($folder);
-	$this->folder->read();
-	if($this->folder->not_empty()){
-	  $this->folder->limit(60);
-	  $this->folder->read();
-		$this->folder->get_files();
-	}
+## Current behavior
+1. Returns both subfolders and files.
+2. Extension filter applies to files only. Folders are always included.
+3. Ordering is stable:
+   - folders first
+   - files second
+   - name order inside each group
+4. Paging and limit are mutually exclusive modes:
+   - `page(...)` enables paging
+   - `limit(...)` / `no_limit()` disables paging
+5. Invalid input/path throws exceptions (`InvalidArgumentException` or `RuntimeException`).
 
-###	example 3 :
-	$this->folder->where($folder);
-	$this->folder->extension(array('html'));
-	$this->folder->read();
-	if($this->folder->not_empty()){
-	  $this->folder->no_limit();
-	  $this->folder->read();
-		$this->folder->get_files();
-	}
+## Methods
+1. `where($folder)`
+   - Sets the folder path to scan and clears previous results.
+2. `extension(array $extension)`
+   - Sets allowed file extensions.
+   - Normalizes input (case-insensitive, strips leading dots).
+3. `limit($limit)`
+   - Sets max returned entries (`int > 0`).
+4. `no_limit()`
+   - Disables limit.
+5. `page($page, $size)`
+   - Enables paging (`page >= 1`, `size >= 1`).
+6. `read_page($page, $size)`
+   - Shortcut: set page + read + return files.
+7. `read()`
+   - Executes scan using current settings.
+8. `get_files()`
+   - Returns array of absolute paths.
+9. `not_empty()`
+   - `true` if current result set has entries.
+10. `has_more()`
+    - `true` when additional entries exist beyond current page/limit.
+11. `disable_paging()`
+    - Resets paging mode.
 
-###	example 4 :
-	$this->folder->where($folder);
-	$this->folder->read();
-	if($this->folder->not_empty()){
-	  $this->folder->no_limit();
-	  $this->folder->read();
-		$this->folder->get_files();
-	}
+## Quick usage
+```php
+$folder = new Folder();
+$folder->where($path);
+$folder->extension(array('php', 'txt')); // optional
+$folder->page(1, 100);                   // or: limit(100), or: no_limit()
+$folder->read();
 
-### Important info
- After using get_files() you can use print_r(),foreach() or something similar to proccess the files.
- 
- 	print_r($this->folder->get_files());
+$files = $folder->get_files();
+$hasMore = $folder->has_more();
+```
 
-	 foreach($this->folder->get_files() AS $File){
-	 	//do something
-	 }
+## Examples
+### Limit mode
+```php
+$folder->where($path);
+$folder->limit(50);
+$folder->read();
+$items = $folder->get_files();
+```
+
+### Paging mode
+```php
+$folder->where($path);
+$items = $folder->read_page(2, 200); // page 2, 200 items
+$hasMore = $folder->has_more();
+```
+
+### No limit mode
+```php
+$folder->where($path);
+$folder->no_limit();
+$folder->read();
+$items = $folder->get_files();
+```
+
+## Notes
+1. Results are absolute filesystem paths.
+2. Index/Test pages in this project are visual test runners for the class.

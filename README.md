@@ -76,4 +76,5 @@ $items = $folder->get_files();
 
 ## Notes
 1. Results are absolute filesystem paths.
-2. Index/Test pages in this project are visual test runners for the class.
+2. `Demo.php` is the visual test runner for the class.
+3. Run the demo through your local PHP server and open `Demo.php` in the browser.

@@ -1,4 +1,4 @@
-# Folder Reader
+# Explorer Studio
 Read directory entries (folders + files) with extension filters, limits, and paging.
 
 ## Current behavior
